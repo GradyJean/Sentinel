@@ -1,6 +1,13 @@
-log_path = "/Users/grady/workplace/software/nginx/logs/access.log"
+import json
 
-with open(log_path, mode="r", encoding="utf-8") as f:
-    # print(sum(1 for _ in f))
-    for line in f:
-        print(line)
+from core.collector.tailer import LogTailer, Log
+
+
+def print_log(log: Log) -> bool:
+    print(log)
+    return True
+
+
+log_path = "data/logs/las.ac.cn_access_2025-11-04.log"
+logTailer = LogTailer(log_path=log_path, call_back=print_log)
+print(logTailer.collect_cycle(duration=2, offset=0))
