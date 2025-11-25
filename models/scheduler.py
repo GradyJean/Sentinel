@@ -1,13 +1,12 @@
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
+from models.elasticsearch import ElasticsearchModel
 
 
-class TaskScheduler(BaseModel):
+class TaskScheduler(ElasticsearchModel):
     """
     任务调度配置模型
     对应 ES task_scheduler 索引
     """
-    id: Optional[str] = Field(default=None, exclude=True)  # 可选的ID字段，序列化时排除
     task_id: str  # 任务唯一 ID
     task_name: Optional[str] = None  # 任务名称（展示用）
     enabled: bool = True  # 是否启用任务

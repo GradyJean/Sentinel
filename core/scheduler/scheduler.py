@@ -1,29 +1,38 @@
-import asyncio
-import time
-from datetime import datetime
+import importlib
+import pkgutil
+from abc import ABC, abstractmethod
+from typing import Dict
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from service.task_scheduler_service import TaskSchedulerService
+
+import tasks
+from models.scheduler import TaskScheduler
+from service import task_scheduler_service
 
 
-async def aggregate_ip():
-    start = time.time()
-    print(f"[{datetime.now()}] 开始聚合 IP...")
+class SchedulerTask(ABC):
+    """
+    任务抽象类
+    """
+    task_id: str
 
-    # 模拟任务
-    await asyncio.sleep(1)
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, "task_id") or cls.task_id is None:
+            raise TypeError(f"{cls.__name__} task_id")
 
-    cost = int((time.time() - start) * 1000)
-    print(f"[{datetime.now()}] IP 聚合完成，耗时 {cost} ms")
+    @abstractmethod
+    async def run(self):
+        pass
 
 
-class TaskScheduler:
+class SchedulerManager:
     def __init__(self):
-        self.task_scheduler_service = TaskSchedulerService()
-        self.task_schedulers = self.task_scheduler_service.load_task_scheduler()
+        self.config: Dict[TaskScheduler] = self.__load_config()
         self.scheduler = AsyncIOScheduler()
-        self.__add_tasks()
+        self.__auto_import_tasks()
+        self.__register_tasks()
 
     def start(self):
         self.scheduler.start()
@@ -31,14 +40,58 @@ class TaskScheduler:
     def stop(self):
         self.scheduler.shutdown()
 
-    def configure_reload(self):
-        self.task_schedulers = self.task_scheduler_service.load_task_scheduler()
+    @staticmethod
+    def __load_config() -> Dict[TaskScheduler]:
+        """
+        加载配置
+        :return:
+        """
+        config: Dict[TaskScheduler] = {}
+        records = task_scheduler_service.get_all()
+        if records:
+            for record in records:
+                config[record.task_id] = record
+        return config
 
-    def __add_tasks(self):
-        self.scheduler.add_job(aggregate_ip,
-                               trigger=CronTrigger.from_crontab("0 4 * * *"),
-                               id="ip_aggregator",
-                               replace_existing=True)
+    @staticmethod
+    def __auto_import_tasks():
+        """
+        自动导入任务
+        :return:
+        """
+        for module_info in pkgutil.walk_packages(tasks.__path__, tasks.__name__ + "."):
+            importlib.import_module(module_info.name)
 
-if __name__ == "__main__":
-    task = TaskScheduler()
+    @staticmethod
+    def __all_task_classes():
+        """
+        获取所有任务类
+        :return:
+        """
+        subclasses = set()
+        queue = [SchedulerTask]
+        while queue:
+            parent = queue.pop()
+            for child in parent.__subclasses__():
+                if child not in subclasses:
+                    subclasses.add(child)
+                    queue.append(child)
+        return subclasses
+
+    def __register_tasks(self):
+        """
+        注册任务
+        :return:
+        """
+        for cls in self.__all_task_classes():
+            task_id = cls.task_id
+            if task_id not in self.config:
+                continue
+            task_config: TaskScheduler = self.config[task_id]
+            task = cls()
+            self.scheduler.add_job(
+                func=task.run,
+                trigger=CronTrigger.from_crontab(task_config.cron),
+                id=task_id,
+                replace_existing=True
+            )
