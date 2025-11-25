@@ -7,6 +7,8 @@ nginx:
   base_path: /Users/grady/workplace/software/nginx
   log_path: /Users/grady/workplace/software/nginx/log/access.log
   conf_path: /Users/grady/workplace/software/nginx/conf
+  black_list_file: /Users/grady/workplace/software/nginx/conf/black_list.conf
+  rate_limit_file: /Users/grady/workplace/software/nginx/conf/rate_limit.conf
 elasticsearch:
   url: http://127.0.0.1:9200
   username: elastic
