@@ -28,7 +28,6 @@ class ElasticsearchConfig(BaseModel):
     """
     Elasticsearch 配置
     """
-    host: str
-    port: int
+    url: str
     username: str
     password: str
