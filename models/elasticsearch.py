@@ -6,7 +6,7 @@ from typing import Dict
     log_format sentinel '$remote_addr||$remote_user||$time_local||$request||$status||'
                 '$request_length||$body_bytes_sent||$http_referer||$http_user_agent||$request_time';
 
-    详情请参考: models.nginx.Log
+    详情请参考: models.nginx.LogMetaData
 
     remote_addr: Optional[str]      # 客户端IP地址
     remote_user: Optional[str]      # 远程用户标识
@@ -90,10 +90,10 @@ daily_nginx_metadata_template: Dict = {
     "cidr": "202.195.48.0/20",  #CIDR ip段
     "tags": ["university"]      #标签
     
-    详情请参考: models.ip.IpSegments
+    详情请参考: models.ip.AllowedIpSegment
     
 """
-ip_segments: Dict = {
+allowed_ip_segment_template: Dict = {
     "settings": {
         "number_of_shards": 5,
         "number_of_replicas": 0
@@ -115,7 +115,93 @@ ip_segments: Dict = {
             },
             "cidr": {
                 "type": "keyword"
+            }
+        }
+    }
+}
+"""
+    ip 记录索引
+    用于存储涉及到的ip信息
+    models.ip.IpRecord
+"""
+ip_record_template: Dict = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 0
+    },
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+
+            "ip": {
+                "type": "ip"
             },
+
+            "location": {
+                "type": "keyword"
+            },
+
+            "isp": {
+                "type": "keyword"
+            },
+
+            "scene": {
+                "type": "keyword"
+            },
+
+            "risk_tags": {
+                "type": "keyword"
+            }
+        }
+    }
+}
+"""
+    ip 策略
+    用于存储限速和黑名单
+    models.ip.IpPolicy
+"""
+ip_policy_template = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 0
+    },
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+
+            "policy_type": {
+                "type": "keyword"
+            },
+
+            "start_ip": {
+                "type": "ip"
+            },
+            "end_ip": {
+                "type": "ip"
+            },
+            "cidr": {
+                "type": "keyword"
+            },
+
+            "reason": {
+                "type": "text"
+            },
+            "manual": {
+                "type": "boolean"
+            },
+
+            "rate_limit": {
+                "type": "integer"
+            },
+            "created_at": {
+                "type": "date",
+                "format": "strict_date_optional_time||epoch_millis"
+            },
+            "expire_at": {
+                "type": "date",
+                "format": "strict_date_optional_time||epoch_millis"
+            },
+
             "tags": {
                 "type": "keyword"
             }

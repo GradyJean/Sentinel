@@ -4,7 +4,7 @@ from typing import Optional, Self
 from pydantic import BaseModel
 
 
-class Log(BaseModel):
+class LogMetaData(BaseModel):
     """
     Log 用于保存 Nginx 日志信息
     示例如下:
@@ -42,7 +42,7 @@ class Log(BaseModel):
             if p is None:
                 raise ValueError(f"日志第 {idx} 个字段缺失（None），日志内容：{log_line}")
 
-        return Log(
+        return LogMetaData(
             remote_addr=parts[0] if parts[0] != "" else None,
             remote_user=parts[1] if parts[1] != "" else None,
             time_local=(
