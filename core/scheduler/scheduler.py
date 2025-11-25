@@ -1,7 +1,7 @@
 import importlib
 import pkgutil
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Set, Mapping
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -29,7 +29,7 @@ class SchedulerTask(ABC):
 
 class SchedulerManager:
     def __init__(self):
-        self.config: Dict[TaskScheduler] = self.__load_config()
+        self.config: Dict[str, TaskScheduler] = self.__load_config()
         self.scheduler = AsyncIOScheduler()
         self.__auto_import_tasks()
         self.__register_tasks()
@@ -41,12 +41,12 @@ class SchedulerManager:
         self.scheduler.shutdown()
 
     @staticmethod
-    def __load_config() -> Dict[TaskScheduler]:
+    def __load_config() -> Dict[str, TaskScheduler]:
         """
         加载配置
         :return:
         """
-        config: Dict[TaskScheduler] = {}
+        config: Dict[str, TaskScheduler] = {}
         records = task_scheduler_service.get_all()
         if records:
             for record in records:
@@ -63,19 +63,20 @@ class SchedulerManager:
             importlib.import_module(module_info.name)
 
     @staticmethod
-    def __all_task_classes():
+    def __all_task_classes() -> Set[type[SchedulerTask]]:
         """
-        获取所有任务类
-        :return:
+        获取所有任务类（包含多层继承），返回类型安全的任务类集合
         """
-        subclasses = set()
-        queue = [SchedulerTask]
+        subclasses: Set[type[SchedulerTask]] = set()
+        queue: list[type[SchedulerTask]] = [SchedulerTask]
+
         while queue:
             parent = queue.pop()
             for child in parent.__subclasses__():
-                if child not in subclasses:
+                if issubclass(child, SchedulerTask) and child not in subclasses:
                     subclasses.add(child)
                     queue.append(child)
+
         return subclasses
 
     def __register_tasks(self):
