@@ -8,7 +8,6 @@ nginx:
   log_path: /Users/grady/workplace/software/nginx/log/access.log
   conf_path: /Users/grady/workplace/software/nginx/conf
 elasticsearch:
-  host: 127.0.0.1
-  port: 9200
+  url: http://127.0.0.1:9200
   username: elastic
   password: <PASSWORD>
