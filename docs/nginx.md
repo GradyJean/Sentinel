@@ -1,13 +1,15 @@
 # 配置 Nginx 日志格式以支持 Sentinel 系统数据统计
 
-为了方便 Sentinel 系统对访问数据进行统计和分析，需要自定义 Nginx 的日志格式。通过自定义日志格式，可以将访问的关键信息（如客户端 IP、响应状态码、请求 URI、用户代理 UA 等）以统一且易于解析的格式记录下来，便于后续的数据处理和统计。
+为了方便 Sentinel 系统对访问数据进行统计和分析，需要自定义 Nginx 的日志格式。通过自定义日志格式，可以将访问的关键信息（如客户端
+IP、响应状态码、请求 URI、用户代理 UA 等）以统一且易于解析的格式记录下来，便于后续的数据处理和统计。
 
 ## 自定义日志格式示例
 
 以下是一个推荐的 `log_format` 定义示例，使用 `||` 作为字段分隔符，方便后续对日志进行拆分和解析：
 
 ```nginx
-log_format sentinel_log '$remote_addr||$remote_user||$time_local||$request||$status||$body_bytes_sent||$http_referer||$http_user_agent';
+    log_format sentinel '$remote_addr||$remote_user||$time_local||$request||$status||'
+                '$request_length||$body_bytes_sent||$http_referer||$http_user_agent||$request_time';
 ```
 
 各字段含义如下：
@@ -17,9 +19,11 @@ log_format sentinel_log '$remote_addr||$remote_user||$time_local||$request||$sta
 - `$time_local`：本地时间
 - `$request`：请求的完整内容（方法、URI、协议）
 - `$status`：响应状态码
+- `$request_length`：请求长度（字节）
 - `$body_bytes_sent`：响应体大小（字节）
 - `$http_referer`：来源页面
 - `$http_user_agent`：客户端浏览器或 UA 信息
+- `$request_time`：请求处理时间（秒）
 
 ## 配置 access_log
 
