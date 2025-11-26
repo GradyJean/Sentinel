@@ -1,8 +1,10 @@
-import os
 import logging
-from models.config import ServerConfig, NginxConfig, ElasticsearchConfig
+import os
+
 import yaml
 from pydantic import BaseModel, ValidationError
+
+from models.config import ServerConfig, NginxConfig, ElasticsearchConfig
 
 
 class Config(BaseModel):

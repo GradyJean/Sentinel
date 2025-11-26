@@ -1,7 +1,8 @@
 from typing import List, TypeVar, Generic, Type, Optional
-from models.elasticsearch import ElasticsearchModel
+
 from loguru import logger
 
+from models.elasticsearch import ElasticsearchModel
 from storage import es_client
 
 E = TypeVar("E", bound=ElasticsearchModel)
