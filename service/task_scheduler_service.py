@@ -1,5 +1,3 @@
-from typing import List
-
 from models.scheduler import TaskScheduler
 from service.elasticsearch_service import ElasticsearchService
 

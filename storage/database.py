@@ -2,8 +2,6 @@ import logging
 
 from sqlmodel import SQLModel, create_engine, Session
 
-from config import settings
-
 
 class Database:
     """
