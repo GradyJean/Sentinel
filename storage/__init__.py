@@ -1,6 +1,3 @@
-from elasticsearch import Elasticsearch
+from storage.document import es_client
 
-from config import settings
-
-es_client = Elasticsearch(settings.elasticsearch.url,
-                          http_auth=(settings.elasticsearch.username, settings.elasticsearch.password))
+__all__ = ["es_client"]

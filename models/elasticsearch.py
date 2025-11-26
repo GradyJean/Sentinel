@@ -6,7 +6,7 @@ class ElasticsearchModel(BaseModel):
     """
     ElasticsearchModel 用于查询 ES 库继承
     """
-    id: Optional[str] = Field(default=None, exclude=True)  # 可选的ID字段，序列化时排除
+    id: Optional[str] = Field(default=None, exclude=True)
 
 
 """
