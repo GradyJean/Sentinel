@@ -57,7 +57,7 @@ class OffsetsService(DatabaseRepository[Offsets]):
         """
         获取日志文件偏移量
         """
-        with self.get_session() as session:
+        with self.get_client() as session:
             record = session.exec(select(Offsets).where(Offsets.id == id)).first()
         if record:
             return record.offsets
@@ -70,4 +70,4 @@ class LogService(ElasticSearchRepository[LogMetaData]):
     """
 
     def __init__(self):
-        super().__init__("",LogMetaData)
+        super().__init__("", LogMetaData)

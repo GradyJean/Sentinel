@@ -4,7 +4,7 @@ from typing import TypeVar, Generic, Optional, List, Any, Type
 E = TypeVar("E")
 
 
-class AbstractRepository(ABC, Generic[E]):
+class IRepository(ABC, Generic[E]):
     """
     抽象仓库类
     """
@@ -60,5 +60,13 @@ class AbstractRepository(ABC, Generic[E]):
     def count(self, query: Any = None) -> int:
         """
         统计记录
+        """
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def get_client():
+        """
+        获取客户端
         """
         pass

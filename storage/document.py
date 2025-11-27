@@ -9,7 +9,7 @@ from config import settings
 from models.elasticsearch import *
 from models.scheduler import TaskScheduler
 from models.storage.document import ElasticSearchModel
-from storage.abstract_repository import AbstractRepository
+from storage.repository import IRepository
 
 es_client: Elasticsearch = Elasticsearch(settings.elasticsearch.url,
                                          http_auth=(settings.elasticsearch.username,
@@ -18,7 +18,7 @@ es_client: Elasticsearch = Elasticsearch(settings.elasticsearch.url,
 E = TypeVar("E", bound=ElasticSearchModel)
 
 
-class ElasticSearchRepository(AbstractRepository[E]):
+class ElasticSearchRepository(IRepository[E]):
     def __init__(self, index: str, model: Type[E]):
         """
         :param index:
