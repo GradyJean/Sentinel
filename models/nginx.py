@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import Optional, Self
 
-from pydantic import BaseModel
+from models.storage.document import ElasticSearchModel
 
 
-class LogMetaData(BaseModel):
+class LogMetaData(ElasticSearchModel):
     """
     Log 用于保存 Nginx 日志信息
     示例如下:

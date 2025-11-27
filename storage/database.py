@@ -5,8 +5,8 @@ from sqlalchemy.sql.functions import func
 from sqlmodel import SQLModel, create_engine, Session, select, delete
 
 from config import settings
-from models.storage.database import DatabaseModel
 from storage.abstract_repository import AbstractRepository
+from models import *
 
 engine = create_engine(settings.database.url, echo=False)
 
@@ -44,7 +44,7 @@ class DatabaseRepository(AbstractRepository[E]):
     def save(self, record: E) -> bool:
         with Session(engine) as session:
             try:
-                session.add(record)
+                session.merge(record)
                 session.commit()
                 return True
             except Exception as e:
@@ -77,6 +77,7 @@ def init_database():
     """
     初始化数据库表结构
     """
+
     try:
         SQLModel.metadata.create_all(engine)
     except Exception as e:
