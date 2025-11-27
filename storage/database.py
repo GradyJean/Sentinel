@@ -69,6 +69,9 @@ class DatabaseRepository(AbstractRepository[E]):
                 select(func.count()).select_from(self.model)
             ).one()
 
+    def get_session(self):
+        return Session(engine)
+
 
 def init_database():
     """
