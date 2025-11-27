@@ -5,7 +5,7 @@ from sqlalchemy.sql.functions import func
 from sqlmodel import SQLModel, create_engine, Session, select, delete
 
 from config import settings
-from storage.abstract_repository import AbstractRepository
+from storage.repository import IRepository
 from models import *
 
 engine = create_engine(settings.database.url, echo=False)
@@ -13,7 +13,7 @@ engine = create_engine(settings.database.url, echo=False)
 E = TypeVar("E", bound=DatabaseModel)
 
 
-class DatabaseRepository(AbstractRepository[E]):
+class DatabaseRepository(IRepository[E]):
     def __init__(self, model: Type[E]):
         super().__init__(model)
 
@@ -69,7 +69,8 @@ class DatabaseRepository(AbstractRepository[E]):
                 select(func.count()).select_from(self.model)
             ).one()
 
-    def get_session(self):
+    @staticmethod
+    def get_client():
         return Session(engine)
 
 
