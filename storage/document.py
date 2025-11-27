@@ -75,7 +75,7 @@ class ElasticSearchRepository(AbstractRepository[E]):
 
     def save(self, record: E) -> bool:
         try:
-            res = es_client.index(index=self.index, id=record.id, body=record.model_dump(exclude_none=True))
+            res = es_client.index(index=self.index, id=record.id, body=record.model_dump(exclude_none=True, mode="json"))
             return res["result"] in ("created", "updated", "noop")
         except Exception as e:
             logger.error(e)
@@ -109,6 +109,10 @@ class ElasticSearchRepository(AbstractRepository[E]):
             query = {"query": {"match_all": {}}}
         res = es_client.count(index=self.index, body=query)
         return res.get("count", 0)
+
+    @staticmethod
+    def get_client():
+        return es_client
 
 
 index_template_dict = {
