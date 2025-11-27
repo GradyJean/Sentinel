@@ -75,7 +75,8 @@ class ElasticSearchRepository(AbstractRepository[E]):
 
     def save(self, record: E) -> bool:
         try:
-            res = es_client.index(index=self.index, id=record.id, body=record.model_dump(exclude_none=True, mode="json"))
+            res = es_client.index(index=self.index, id=record.id,
+                                  body=record.model_dump(exclude_none=True, mode="json"))
             return res["result"] in ("created", "updated", "noop")
         except Exception as e:
             logger.error(e)
