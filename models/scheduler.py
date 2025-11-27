@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from models.elasticsearch import ElasticsearchModel
+from models.storage.document import ElasticSearchModel
 
 
 class TaskStatus(Enum):
@@ -14,7 +14,7 @@ class TaskStatus(Enum):
     CANCELED = "canceled"
 
 
-class TaskScheduler(ElasticsearchModel):
+class TaskScheduler(ElasticSearchModel):
     """
     任务调度配置模型
     对应 ES task_scheduler 索引

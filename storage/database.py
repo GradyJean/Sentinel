@@ -1,32 +1,80 @@
 import logging
+from typing import TypeVar, Any, List, Optional, Type
 
-from sqlmodel import SQLModel, create_engine, Session
+from sqlalchemy.sql.functions import func
+from sqlmodel import SQLModel, create_engine, Session, select, delete
+
+from config import settings
+from models.storage.database import DatabaseModel
+from storage.abstract_repository import AbstractRepository
+
+engine = create_engine(settings.database.url, echo=False)
+
+E = TypeVar("E", bound=DatabaseModel)
 
 
-class Database:
+class DatabaseRepository(AbstractRepository[E]):
+    def __init__(self, model: Type[E]):
+        super().__init__(model)
+
+    def get_all(self) -> List[E]:
+        with Session(engine) as session:
+            return session.exec(select(self.model)).all()
+
+    def query_list(self, query: Any) -> List[E]:
+        with Session(engine) as session:
+            return session.exec(query).all()
+
+    def get_by_id(self, id: str) -> Optional[E]:
+        with Session(engine) as session:
+            return session.get(self.model, id)
+
+    def delete_by_id(self, id: str) -> bool:
+        with Session(engine) as session:
+            try:
+                statement = delete(self.model).where(self.model.id == id)
+                result = session.exec(statement)
+                session.commit()
+                return result.rowcount > 0
+            except Exception as e:
+                session.rollback()
+                logging.error(f"Error deleting record: {e}")
+                return False
+
+    def save(self, record: E) -> bool:
+        with Session(engine) as session:
+            try:
+                session.add(record)
+                session.commit()
+                return True
+            except Exception as e:
+                session.rollback()
+                logging.error(f"Error saving record: {e}")
+                return False
+
+    def batch_save(self, records: List[E]) -> bool:
+        with Session(engine) as session:
+            try:
+                session.add_all(records)
+                session.commit()
+                return True
+            except Exception as e:
+                session.rollback()
+                logging.error(f"Error saving records: {e}")
+                return False
+
+    def count(self, query: Any = None) -> int:
+        with Session(engine) as session:
+            return session.exec(
+                select(func.count()).select_from(self.model)
+            ).one()
+
+
+def init_database():
     """
-    系统数据库管理类
+    初始化数据库表结构
     """
-
-    def __init__(self, db_url: str):
-        """
-        初始化数据库连接
-        """
-        try:
-            self.engine = create_engine(db_url, echo=False)
-        except Exception as e:
-            logging.error(f"Database initialization error: {e}")
-            raise
-
-    def get_session(self):
-        with Session(self.engine) as session:
-            yield session
-
-    def init_db(self):
-        """
-        初始化数据库表结构
-        """
-        try:
-            SQLModel.metadata.create_all(self.engine)
-        except Exception as e:
-            logging.error(f"Error initializing DB schema: {e}")
+    try:
+        SQLModel.metadata.create_all(engine)
+    except Exception as e:
+        logging.error(f"Error initializing DB schema: {e}")

@@ -1,14 +1,4 @@
-from typing import Dict, Optional
-
-from pydantic import BaseModel, Field
-
-
-class ElasticsearchModel(BaseModel):
-    """
-    ElasticsearchModel 用于查询 ES 库继承
-    """
-    id: Optional[str] = Field(default=None, exclude=True)
-
+from typing import Dict
 
 """
     每天生成新索引

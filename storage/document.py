@@ -1,15 +1,115 @@
 from datetime import datetime
+from typing import List, TypeVar, Any, Optional, Type
 
 from elasticsearch import Elasticsearch, helpers
 from loguru import logger
-from typing import List
-from models.scheduler import TaskScheduler
+from pydantic import BaseModel
+
 from config import settings
 from models.elasticsearch import *
+from models.scheduler import TaskScheduler
+from models.storage.document import ElasticSearchModel
+from storage.abstract_repository import AbstractRepository
 
 es_client: Elasticsearch = Elasticsearch(settings.elasticsearch.url,
                                          http_auth=(settings.elasticsearch.username,
                                                     settings.elasticsearch.password))
+
+E = TypeVar("E", bound=ElasticSearchModel)
+
+
+class ElasticSearchRepository(AbstractRepository[E]):
+    def __init__(self, index: str, model: Type[E]):
+        """
+        :param index:
+        """
+        super().__init__(model)
+        if index is None:
+            raise ValueError("Repository must specify a index")
+        self.index = index
+
+    def get_all(self) -> List[E]:
+        records: List[E] = []
+        res = es_client.search(index=self.index, body={"query": {"match_all": {}}})
+        if "hits" not in res:
+            return records
+        for hit in res["hits"]["hits"]:
+            record = self.model(**hit["_source"])
+            record.id = hit["_id"]
+            records.append(record)
+        return records
+
+    def query_list(self, query: Any) -> List[E]:
+        records: List[E] = []
+        res = es_client.search(index=self.index, body=query)
+        if "hits" not in res:
+            return records
+        for hit in res["hits"]["hits"]:
+            record = self.model(**hit["_source"])
+            record.id = hit["_id"]
+            records.append(record)
+        return records
+
+    def get_by_id(self, id: str) -> Optional[E]:
+        try:
+            res = es_client.get(index=self.index, id=id)
+        except Exception as e:
+            logger.error(e)
+            return None
+
+        # ES may return {"found": False}
+        if not res.get("found", True) or "_source" not in res:
+            return None
+
+        record = self.model(**res["_source"])
+        record.id = res["_id"]
+        return record
+
+    def delete_by_id(self, id: str) -> bool:
+        try:
+            res = es_client.delete(index=self.index, id=id)
+        except Exception as e:
+            logger.error(e)
+            return False
+        return res.get("result") == "deleted"
+
+    def save(self, record: E) -> bool:
+        try:
+            res = es_client.index(index=self.index, id=record.id, body=record.model_dump(exclude_none=True))
+            return res["result"] in ("created", "updated", "noop")
+        except Exception as e:
+            logger.error(e)
+            return False
+
+    def batch_save(self, records: List[E]) -> bool:
+        try:
+            actions = (
+                {
+                    "_index": self.index,
+                    "_source": record.model_dump(exclude_none=True)
+                }
+                for record in records
+            )
+
+            success_count, error = helpers.bulk(
+                es_client,
+                actions,
+                request_timeout=60
+            )
+            if error:
+                logger.error(error)
+                return False
+            return success_count > 0
+        except Exception as e:
+            logger.error(e)
+            return False
+
+    def count(self, query: Any = None) -> int:
+        if query is None:
+            query = {"query": {"match_all": {}}}
+        res = es_client.count(index=self.index, body=query)
+        return res.get("count", 0)
+
 
 index_template_dict = {
     "nginx_log_metadata": daily_nginx_metadata_template,
@@ -20,7 +120,7 @@ index_template_dict = {
 }
 
 
-def elasticsearch_index_init():
+def init_elasticsearch():
     """
     初始化索引
     :return:
@@ -40,10 +140,10 @@ def elasticsearch_index_init():
             else:
                 raise Exception(f"{index_name} index init error: {res}")
     # 定时任务初始化
-    task_scheduler_init()
+    __init_task_scheduler()
 
 
-def task_scheduler_init():
+def __init_task_scheduler():
     """
         定时调度初始化
     """
