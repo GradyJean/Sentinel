@@ -33,3 +33,10 @@ class ElasticsearchConfig(BaseModel):
     url: str = ""
     username: str = ""
     password: str = ""
+
+
+class DatabaseConfig(BaseModel):
+    """
+    数据库配置
+    """
+    url: str = ""

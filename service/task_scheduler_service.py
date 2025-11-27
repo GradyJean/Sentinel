@@ -1,8 +1,8 @@
 from models.scheduler import TaskScheduler
-from service.elasticsearch_service import ElasticsearchService
+from storage.document import ElasticSearchRepository
 
 
-class TaskSchedulerService(ElasticsearchService[TaskScheduler]):
+class TaskSchedulerService(ElasticSearchRepository[TaskScheduler]):
     """
     任务调度服务
     """

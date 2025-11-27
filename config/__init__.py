@@ -1,11 +1,10 @@
 import os
-from pathlib import Path
 
-from config.loader import load_config
+from config.loader import load_config, PROJECT_ROOT
 from config.logger import setup_logger
 
 # project root
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = PROJECT_ROOT
 # settings
 settings = load_config(f"{PROJECT_ROOT}/setting.yaml")
 # core os
@@ -17,5 +16,6 @@ if os.sep == '\\':
 __all__ = [
     "setup_logger",
     "settings",
-    "CORE_OS"
+    "CORE_OS",
+    "PROJECT_ROOT"
 ]

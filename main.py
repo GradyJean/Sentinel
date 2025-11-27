@@ -7,7 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from config import settings, setup_logger
-from storage.document import elasticsearch_index_init
+from storage.document import init_elasticsearch
+from storage.database import init_database
 from core.scheduler.scheduler import SchedulerManager
 from exception.exception_handlers import add_exception_handlers
 
@@ -19,9 +20,12 @@ async def lifespan(app: FastAPI):
     # 初始化日志
     setup_logger()
     logger.info("logger initialized")
+    # 初始化数据库
+    init_database()
+    logger.info("database initialized")
     # 初始化索引
-    elasticsearch_index_init()
-    logger.info("elasticsearch indices initialized")
+    init_elasticsearch()
+    logger.info("elasticsearch initialized")
     # 启动定时任务
     scheduler_manager = SchedulerManager()
     scheduler_manager.start()
