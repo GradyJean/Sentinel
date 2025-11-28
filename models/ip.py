@@ -2,7 +2,9 @@ import ipaddress
 from enum import Enum
 from typing import Optional, List, Self
 
-from pydantic import BaseModel, model_validator, Field
+from pydantic import model_validator
+
+from models import ElasticSearchModel
 
 
 def ip_range_to_cidr(start_ip: str, end_ip: str) -> str:
@@ -16,11 +18,10 @@ def ip_range_to_cidr(start_ip: str, end_ip: str) -> str:
     return str(list(networks)[0])
 
 
-class AllowedIpSegment(BaseModel):
+class AllowedIpSegment(ElasticSearchModel):
     """
     允许的 IP 段
     """
-    id: Optional[str] = Field(default=None, exclude=True)  # 可选的ID字段，序列化时排除
     org_name: Optional[str] = None  # 机构名称
     is_internal: Optional[bool] = None  # 是否院内机构
     start_ip: str  # 起始 IP
@@ -37,11 +38,10 @@ class AllowedIpSegment(BaseModel):
         return self
 
 
-class IpRecord(BaseModel):
+class IpRecord(ElasticSearchModel):
     """
     IP 记录
     """
-    id: Optional[str] = Field(default=None, exclude=True)  # 可选的ID字段，序列化时排除
     ip: str  # IP
     location: str  # 地理位置
     isp: str  # 运营商
@@ -57,11 +57,10 @@ class PolicyType(Enum):
     RATELIMIT = "RATELIMIT"  # 限速
 
 
-class IpPolicy(BaseModel):
+class IpPolicy(ElasticSearchModel):
     """
     IP 策略
     """
-    id: Optional[str] = Field(default=None, exclude=True)  # 可选的ID字段，序列化时排除
     policy_type: PolicyType  # 策略类型
     start_ip: Optional[str] = None  # 起始 IP
     end_ip: Optional[str] = None  # 结束 IP

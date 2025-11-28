@@ -75,8 +75,13 @@ class ElasticSearchRepository(IRepository[E]):
 
     def merge(self, record: E) -> bool:
         try:
-            res = es_client.index(index=self.index, id=record.id,
-                                  body=record.model_dump(exclude_none=True, mode="json"))
+            res = es_client.update(
+                index=self.index,
+                id=record.id,
+                doc=record.model_dump(exclude_none=True, mode="json"),
+                doc_as_upsert=True,
+                retry_on_conflict=3
+            )
             return res["result"] in ("created", "updated", "noop")
         except Exception as e:
             logger.error(e)
@@ -125,7 +130,6 @@ class ElasticSearchRepository(IRepository[E]):
         acknowledged = res.get('acknowledged')
         if acknowledged:
             logger.info(f"{index_name} index create: {acknowledged}")
-            es_client.indices.refresh(index=index_name)
         else:
             raise Exception(f"{index_name} index create error: {res}")
 
@@ -180,6 +184,7 @@ def __init_task_scheduler():
     """
     configs: List[TaskScheduler] = [
         TaskScheduler(
+            id="log_collector",
             task_id="log_collector",
             task_name="Nginx日志采集",
             enabled=True,
@@ -203,8 +208,11 @@ def data_init(index_name: str, data: List[BaseModel]):
 
     actions = (
         {
+            "_op_type": "update",
             "_index": index_name,
-            "_source": record.model_dump(exclude_none=True)
+            "_id": record.id,
+            "doc": record.model_dump(exclude_none=True, mode="json"),
+            "doc_as_upsert": True
         }
         for record in data
     )
