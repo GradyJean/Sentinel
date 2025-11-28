@@ -215,7 +215,8 @@ ip_policy_template = {
 task_scheduler_template = {
     "settings": {
         "number_of_shards": 5,
-        "number_of_replicas": 0
+        "number_of_replicas": 0,
+        "refresh_interval": "30s"
     },
     "mappings": {
         "dynamic": "strict",

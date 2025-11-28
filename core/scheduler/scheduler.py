@@ -94,7 +94,7 @@ class SchedulerManager:
         """
            通用包装器：执行前后自动更新状态、捕获异常
         """
-        config: TaskScheduler = task_scheduler_service.get_by_task_id(task_runner.task_id)
+        config: TaskScheduler = task_scheduler_service.get_by_id(task_runner.task_id)
         # 配置不存在 或者 禁用 跳过
         if not config or not config.enabled:
             return
