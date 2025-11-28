@@ -9,10 +9,8 @@ dependencies = [
     "elasticsearch>=9.2.0",
     "fastapi>=0.120.3",
     "loguru>=0.7.3",
-    "numpy>=2.3.4",
     "pydantic>=2.12.3",
     "pyyaml>=6.0.3",
-    "scikit-learn>=1.7.2",
     "sqlmodel>=0.0.27",
     "uvicorn>=0.38.0",
 ]
