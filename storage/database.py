@@ -5,8 +5,8 @@ from sqlalchemy.sql.functions import func
 from sqlmodel import SQLModel, create_engine, Session, select, delete
 
 from config import settings
-from storage.repository import IRepository
 from models import *
+from storage.repository import IRepository
 
 engine = create_engine(settings.database.url, echo=False)
 
@@ -52,10 +52,22 @@ class DatabaseRepository(IRepository[E]):
                 logging.error(f"Error saving record: {e}")
                 return False
 
-    def batch_save(self, records: List[E]) -> bool:
+    def batch_insert(self, records: List[E]) -> bool:
         with Session(engine) as session:
             try:
                 session.add_all(records)
+                session.commit()
+                return True
+            except Exception as e:
+                session.rollback()
+                logging.error(f"Error saving records: {e}")
+                return False
+
+    def batch_merge(self, records: List[E]) -> bool:
+        with Session(engine) as session:
+            try:
+                for record in records:
+                    session.merge(record)
                 session.commit()
                 return True
             except Exception as e:

@@ -50,11 +50,18 @@ class IRepository(ABC, Generic[E]):
         pass
 
     @abstractmethod
-    def batch_save(self, records: List[E]) -> bool:
+    def batch_insert(self, records: List[E]) -> bool:
         """
-        批量保存记录
+        批量插入记录
         只批量插入
         不更新
+        """
+        pass
+
+    def batch_merge(self, records: List[E]) -> bool:
+        """
+        批量保存记录
+        批量插入/更新
         """
         pass
 
