@@ -1,9 +1,7 @@
-import os
 from datetime import datetime
 from typing import List
 
 from loguru import logger
-from sqlmodel import select
 
 from config import settings
 from core.collector.log_collector import Collector
@@ -11,7 +9,7 @@ from core.scheduler.task_runner import TaskRunner
 from models.log import OffsetConfig
 from models.nginx import LogMetaData
 from storage.database import DatabaseRepository
-from storage.document import ElasticSearchRepository, E
+from storage.document import ElasticSearchRepository
 
 
 class LogCollectorTask(TaskRunner):
@@ -95,4 +93,4 @@ class LogMetaDataService(ElasticSearchRepository[LogMetaData]):
         index_name = f"nginx_log_metadata_{now.strftime('%Y_%m_%d')}"
         # 创建索引
         self.acquire_index(index_name, self.get_index_template("nginx_log_metadata"))
-        return self.batch_save(metadata_list)
+        return self.batch_insert(metadata_list)

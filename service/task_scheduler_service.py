@@ -1,5 +1,3 @@
-from typing import Optional
-
 from models.scheduler import TaskScheduler
 from storage.document import ElasticSearchRepository
 

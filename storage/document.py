@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, TypeVar, Any, Optional, Type
 
 from elasticsearch import Elasticsearch, helpers
@@ -87,7 +86,7 @@ class ElasticSearchRepository(IRepository[E]):
             logger.error(e)
             return False
 
-    def batch_save(self, records: List[E]) -> bool:
+    def batch_insert(self, records: List[E]) -> bool:
         try:
             actions = (
                 {
@@ -100,6 +99,37 @@ class ElasticSearchRepository(IRepository[E]):
             success_count, error = helpers.bulk(
                 es_client,
                 actions,
+                chunk_size=1000,
+                request_timeout=60
+            )
+            if error:
+                logger.error(error)
+                return False
+            return success_count > 0
+        except Exception as e:
+            logger.error(e)
+            return False
+
+    def batch_merge(self, records: List[E]) -> bool:
+        """
+          批量添加IP记录
+          """
+        try:
+            actions = (
+                {
+                    "_op_type": "update",
+                    "_index": self.index,
+                    "_id": record.id,
+                    "doc": record.model_dump(exclude_none=True, mode="json"),
+                    "doc_as_upsert": True
+                }
+                for record in records
+            )
+
+            success_count, error = helpers.bulk(
+                self.get_client(),
+                actions,
+                chunk_size=1000,
                 request_timeout=60
             )
             if error:
