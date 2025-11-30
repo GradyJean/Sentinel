@@ -146,7 +146,7 @@ class ElasticSearchRepository(IRepository[E]):
         res = es_client.count(index=self.index, body=query)
         return res.get("count", 0)
 
-    def acquire_index(self, index_name: str, index_template: dict):
+    def create_index(self, index_name: str, index_template: dict):
         """
         创建索引
         :param index_name:

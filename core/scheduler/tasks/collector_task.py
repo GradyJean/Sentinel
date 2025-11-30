@@ -8,8 +8,8 @@ from core.collector.log_collector import Collector
 from core.scheduler.task_runner import TaskRunner
 from models.log import OffsetConfig
 from models.nginx import LogMetaData
+from service.log_metadata_service import LogMetaDataService
 from storage.database import DatabaseRepository
-from storage.document import ElasticSearchRepository
 
 
 class LogCollectorTask(TaskRunner):
@@ -41,7 +41,7 @@ class LogCollectorTask(TaskRunner):
         self.offset_service.update(file_path=file_path, offset=offset)
 
     def metadata_callback(self, metadata_list: List[LogMetaData], file_path: str, offset: int) -> bool:
-        save_status = self.log_metadata_service.metadata_list_save(metadata_list)
+        save_status = self.log_metadata_service.batch_insert(metadata_list)
         if save_status:
             # 保存文件偏移量
             self.offset_service.update(file_path=file_path, offset=offset)
@@ -78,19 +78,3 @@ class OffsetsService(DatabaseRepository[OffsetConfig]):
             update_time=now,
             collect_date=now.strftime("%Y-%m-%d")
         ))
-
-
-class LogMetaDataService(ElasticSearchRepository[LogMetaData]):
-    """
-    日志服务
-    """
-
-    def __init__(self):
-        super().__init__("nginx_log_metadata", LogMetaData)
-
-    def metadata_list_save(self, metadata_list: List[LogMetaData]) -> bool:
-        now = datetime.now()
-        index_name = f"nginx_log_metadata_{now.strftime('%Y_%m_%d')}"
-        # 创建索引
-        self.acquire_index(index_name, self.get_index_template("nginx_log_metadata"))
-        return self.batch_insert(metadata_list)
