@@ -1,22 +1,13 @@
-from typing import List, Dict, Optional
+from typing import List, Dict
 
+from geoip2 import database as geoip_database
 from geoip2.errors import GeoIP2Error
 from geoip2.models import City
 from loguru import logger
 
 from config import settings
-from models.ip import IpRecord, AllowedIpSegment, IpPolicy
+from models.ip import AllowedIpSegment
 from storage.document import ElasticSearchRepository
-from geoip2 import database as geoip_database
-
-
-class IpRecordService(ElasticSearchRepository[IpRecord]):
-    """
-    IP记录服务
-    """
-
-    def __init__(self):
-        super().__init__("ip_record", IpRecord)
 
 
 class AllowedIpSegmentService(ElasticSearchRepository[AllowedIpSegment]):
@@ -86,15 +77,6 @@ class AllowedIpSegmentService(ElasticSearchRepository[AllowedIpSegment]):
                 segments.append(segment)
             output[ip] = segments
         return output
-
-
-class IpPolicyService(ElasticSearchRepository[IpPolicy]):
-    """
-    IP策略服务
-    """
-
-    def __init__(self):
-        super().__init__("ip_policy", IpPolicy)
 
 
 class GeoIpService:

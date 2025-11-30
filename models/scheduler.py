@@ -28,3 +28,4 @@ class TaskScheduler(ElasticSearchModel):
     end_time: Optional[datetime] = None  # 最近执行时间
     status: Optional[TaskStatus] = None  # 执行状态：success/failed/skipped
     message: Optional[str] = None  # 错误信息或执行信息
+    batch_id: Optional[str] = None

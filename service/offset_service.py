@@ -2,6 +2,7 @@ from datetime import datetime
 
 from models import OffsetConfig
 from storage.database import DatabaseRepository
+from sqlmodel import update
 
 
 class OffsetsService(DatabaseRepository[OffsetConfig]):
@@ -19,16 +20,20 @@ class OffsetsService(DatabaseRepository[OffsetConfig]):
         """
         return self.get_by_id(self.offsets_id)
 
-    def update(self, file_path: str, offset: int = 0):
+    def update(self, config: OffsetConfig):
         """
         保存日志文件偏移量
         """
-
         now = datetime.now()
-        self.merge(OffsetConfig(
-            id=self.offsets_id,
-            file_path=file_path,
-            offset=offset,
-            update_time=now,
-            collect_date=now.strftime("%Y-%m-%d")
-        ))
+        config.id = self.offsets_id
+        config.update_time = now
+        return self.merge(config)
+
+    def update_offset(self, file_path, offset: int):
+        """
+        更新日志文件偏移量
+        """
+        config = self.get()
+        config.file_path = file_path
+        config.offset = offset
+        self.update(config)
