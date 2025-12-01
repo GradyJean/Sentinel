@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, Self
 
+from pydantic import model_validator
 from sqlalchemy import func
 from sqlmodel import Field
 from enum import Enum
@@ -75,6 +76,24 @@ class LogMetaData(ElasticSearchModel):
             request_time=int(float(parts[9]) * 1000) if parts[9] != "" else None,
             batch_id=None
         )
+
+    @model_validator(mode="after")
+    def auto_fix(self) -> Self:
+        self.batch_id = self.get_batch_id(self.time_local)
+        return self
+
+    @staticmethod
+    def get_batch_id(time: datetime, interval: int = 5) -> str:
+        total_minutes = time.hour * 60 + time.minute
+        rounded_minutes = (total_minutes // interval) * interval
+        # 生成取整后的datetime对象（保留原日期，截断秒和微秒）
+        rounded_datetime = time.replace(
+            hour=rounded_minutes // 60,
+            minute=rounded_minutes % 60,
+            second=0,
+            microsecond=0
+        )
+        return rounded_datetime.strftime("%Y%m%d%H%M")
 
 
 class BatchStatus(Enum):

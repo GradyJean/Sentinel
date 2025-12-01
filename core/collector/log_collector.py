@@ -33,7 +33,7 @@ class Collector:
         self.__call_back = call_back
         self.__batch_size = batch_size
 
-    def start(self, file_path: str, offset: int = 0, batch_id: str = None) -> int:
+    def start(self, file_path: str, offset: int = 0) -> int:
         """
             运行日志采集
             callback 也返回偏移量 防止程序中断丢数据
@@ -61,7 +61,6 @@ class Collector:
                     break
                 try:
                     log_metadata = LogMetaData.parse(line)
-                    log_metadata.batch_id = batch_id
                 except Exception as e:
                     logger.warning(f"{line} parse error: {e}")
                     continue
