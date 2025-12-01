@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 
 from loguru import logger
@@ -6,8 +7,8 @@ from config import settings
 from core.collector.log_collector import Collector
 from core.scheduler.task_runner import TaskRunner
 from models import OffsetConfig
-from models.nginx import LogMetaData
-from service.log_metadata_service import LogMetaDataService
+from models.log import LogMetaData, LogMetadataBatch, BatchStatus
+from service.log_metadata_service import LogMetaDataService, LogMetaDataBatchService
 from service.offset_service import OffsetsService
 
 
@@ -20,6 +21,7 @@ class LogCollectorTask(TaskRunner):
     def __init__(self):
         self.offset_service = OffsetsService()
         self.log_metadata_service = LogMetaDataService()
+        self.log_metadata_batch_service = LogMetaDataBatchService()
         self.collector = Collector(
             call_back=self.metadata_callback,
         )
@@ -31,7 +33,9 @@ class LogCollectorTask(TaskRunner):
             count =1 的时候offset 为0 表示从文件头开始
             count 字段 由daily_task 任务更新
         """
+        start_time = datetime.datetime.now()
         file_path = settings.nginx.get_log_path()
+        batch_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         # 文件偏移量
         offset = 0
         # 获取文件偏移量配置
@@ -52,12 +56,20 @@ class LogCollectorTask(TaskRunner):
             # 先保存,callback 函数会调用
             self.offset_service.update(offset_config)
         # 文件采集并返回偏移量
-        offset = self.collector.start(file_path=file_path, offset=offset)
+        offset = self.collector.start(file_path=file_path, offset=offset, batch_id=batch_id)
         # 保存文件偏移量
         offset_config.file_path = file_path
         offset_config.offset = offset
         offset_config.count += 1
         self.offset_service.update(offset_config)
+        self.log_metadata_batch_service.merge(
+            LogMetadataBatch(
+                batch_id=batch_id,
+                start_time=start_time,
+                end_time=datetime.datetime.now(),
+                status=BatchStatus.PENDING
+            )
+        )
 
     def metadata_callback(self, metadata_list: List[LogMetaData], file_path: str, offset: int) -> bool:
         save_status = self.log_metadata_service.batch_insert(metadata_list)

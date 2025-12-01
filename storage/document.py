@@ -180,6 +180,7 @@ class ElasticSearchRepository(IRepository[E]):
 index_template_dict = {
     "nginx_log_metadata": {"value": daily_nginx_metadata_template, "init": False},
     "allowed_ip_segment": {"value": allowed_ip_segment_template, "init": True},
+    "log_metadata_batch": {"value": log_metadata_batch_template, "init": True},
     "task_scheduler": {"value": task_scheduler_template, "init": True},
 }
 

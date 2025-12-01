@@ -6,7 +6,7 @@ from typing import Dict
     log_format sentinel '$remote_addr||$remote_user||$time_local||$request||$status||'
                 '$request_length||$body_bytes_sent||$http_referer||$http_user_agent||$request_time';
 
-    详情请参考: models.nginx.LogMetaData
+    详情请参考: models.log.LogMetaData
 
     remote_addr: Optional[str]      # 客户端IP地址
     remote_user: Optional[str]      # 远程用户标识
@@ -77,7 +77,35 @@ daily_nginx_metadata_template: Dict = {
             },
             "request_time": {
                 "type": "integer"
+            },
+            "batch_id": {
+                "type": "keyword"
             }
+        }
+    }
+}
+log_metadata_batch_template: Dict = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 0
+    },
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+            "batch_id": {
+                "type": "keyword"
+            },
+            "start_time": {
+                "type": "date",
+                "format": "strict_date_optional_time||epoch_millis"
+            },
+            "end_time": {
+                "type": "date",
+                "format": "strict_date_optional_time||epoch_millis"
+            },
+            "status": {
+                "type": "keyword"
+            },
         }
     }
 }

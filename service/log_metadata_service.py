@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from models.nginx import LogMetaData
+from models.log import LogMetaData, LogMetadataBatch
 from storage.document import ElasticSearchRepository
 
 
@@ -21,3 +21,12 @@ class LogMetaDataService(ElasticSearchRepository[LogMetaData]):
         index_name = f"nginx_log_metadata_{now.strftime('%Y_%m_%d')}"
         # 创建索引
         self.create_index(index_name, self.get_index_template("nginx_log_metadata"))
+
+
+class LogMetaDataBatchService(ElasticSearchRepository[LogMetadataBatch]):
+    """
+    日志服务
+    """
+
+    def __init__(self):
+        super().__init__("log_metadata_batch", LogMetadataBatch)
