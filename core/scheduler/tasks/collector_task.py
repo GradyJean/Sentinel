@@ -25,6 +25,12 @@ class LogCollectorTask(TaskRunner):
         )
 
     async def run(self):
+        """
+            初始计数 从1开始 1表示从今天的文件开始
+            0表示昨天日志 用于收尾昨天日志
+            count =1 的时候offset 为0 表示从文件头开始
+            count 字段 由daily_task 任务更新
+        """
         file_path = settings.nginx.get_log_path()
         # 文件偏移量
         offset = 0
@@ -32,15 +38,18 @@ class LogCollectorTask(TaskRunner):
         offset_config = self.offset_service.get()
         if offset_config:
             offset = offset_config.offset
-            if offset_config.count == 0:  # count ==0 表示未切换文件 用于收尾昨天日志
+            # count ==0 表示未切换文件 用于收尾昨天日志
+            if offset_config.count == 0:
                 file_path = offset_config.file_path
+            if offset_config.count == 1:  # count > 1 表示已经切换文件
+                offset = 0
         else:
             offset_config = OffsetConfig(
                 file_path=file_path,
                 offset=offset,
-                count=0
+                count=1
             )
-            # 先保存
+            # 先保存,callback 函数会调用
             self.offset_service.update(offset_config)
         # 文件采集并返回偏移量
         offset = self.collector.start(file_path=file_path, offset=offset)
