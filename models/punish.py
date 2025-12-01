@@ -4,7 +4,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
-from models import ElasticSearchModel
+from models.storage.document import ElasticSearchModel
 
 
 class ScoreType(Enum):

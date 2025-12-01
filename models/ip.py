@@ -3,7 +3,7 @@ from typing import Optional, Self
 
 from pydantic import model_validator
 
-from models import ElasticSearchModel
+from models.storage.document import ElasticSearchModel
 
 
 def ip_range_to_cidr(start_ip: str, end_ip: str) -> str:

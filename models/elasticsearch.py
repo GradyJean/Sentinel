@@ -95,6 +95,9 @@ log_metadata_batch_template: Dict = {
             "batch_id": {
                 "type": "keyword"
             },
+            "index_name": {
+                "type": "keyword"
+            },
             "start_time": {
                 "type": "date",
                 "format": "strict_date_optional_time||epoch_millis"

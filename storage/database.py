@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import TypeVar, Any, List, Optional, Type
 
@@ -5,6 +6,7 @@ from sqlalchemy.sql.functions import func
 from sqlmodel import SQLModel, create_engine, Session, select, delete
 
 from config import settings
+from models.storage.database import DatabaseModel
 from models import *
 from storage.repository import IRepository
 
@@ -98,5 +100,23 @@ def init_database():
 
     try:
         SQLModel.metadata.create_all(engine)
+        init_offset_config()
     except Exception as e:
         logging.error(f"Error initializing DB schema: {e}")
+
+
+def init_offset_config():
+    """
+    初始化文件偏移量配置
+    """
+    with Session(engine) as session:
+        record_count = session.exec(select(func.count()).select_from(OffsetConfig)).one()
+        if record_count == 0:
+            session.add(OffsetConfig(
+                id="log_collect",
+                file_path=settings.nginx.get_log_path(),
+                index_name=f"log_metadata_{datetime.datetime.now().strftime('%Y_%m_%d')}",
+                offset=0,
+                count=2
+            ))
+            session.commit()

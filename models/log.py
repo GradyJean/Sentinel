@@ -4,7 +4,7 @@ from typing import Optional, Self
 from sqlalchemy import func
 from sqlmodel import Field
 from enum import Enum
-from models import ElasticSearchModel
+from models.storage.document import ElasticSearchModel
 from models.storage.database import DatabaseModel
 
 
@@ -14,6 +14,7 @@ class OffsetConfig(DatabaseModel, table=True):
     """
     __tablename__ = "offset_config"
     file_path: str = Field(..., description="日志文件路径", unique=True)
+    index_name: str = Field(..., description="索引名称")
     offset: int = Field(0, description="日志文件偏移量")
     update_time: datetime = Field(default=func.now(), description="更新时间")
     count: int = Field(default=0, description="计数")
@@ -91,6 +92,7 @@ class LogMetadataBatch(ElasticSearchModel):
     日志批次信息
     """
     batch_id: str  # 批次ID
+    index_name: str  # 索引名称
     start_time: datetime  # 批次开始时间
     end_time: datetime  # 批次结束时间
     status: BatchStatus  # 批次状态

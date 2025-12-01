@@ -33,28 +33,27 @@ class LogCollectorTask(TaskRunner):
             count =1 的时候offset 为0 表示从文件头开始
             count 字段 由daily_task 任务更新
         """
-        start_time = datetime.datetime.now()
+        now = datetime.datetime.now()
+        start_time = now
         file_path = settings.nginx.get_log_path()
-        batch_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        # 文件偏移量
-        offset = 0
+        batch_id = now.strftime("%Y%m%d%H%M%S")
+
+        # 创建索引(如果不存在)
+        index_name = f"log_metadata_{now.strftime('%Y_%m_%d')}"
+        template = self.log_metadata_service.get_index_template("nginx_log_metadata")
+        self.log_metadata_service.create_index(index_name, template)
+
         # 获取文件偏移量配置
         offset_config = self.offset_service.get()
-        if offset_config:
-            offset = offset_config.offset
-            # count ==0 表示未切换文件 用于收尾昨天日志
-            if offset_config.count == 0:
-                file_path = offset_config.file_path
-            if offset_config.count == 1:  # count > 1 表示已经切换文件
-                offset = 0
-        else:
-            offset_config = OffsetConfig(
-                file_path=file_path,
-                offset=offset,
-                count=1
-            )
-            # 先保存,callback 函数会调用
-            self.offset_service.update(offset_config)
+        offset = offset_config.offset
+        # count ==0 表示未切换文件 用于收尾昨天日志
+        if offset_config.count == 0:
+            file_path = offset_config.file_path
+            self.log_metadata_service.index = offset_config.index_name
+        if offset_config.count == 1:  # count > 1 表示已经切换文件
+            offset = 0
+            self.log_metadata_service.index = index_name
+
         # 文件采集并返回偏移量
         offset = self.collector.start(file_path=file_path, offset=offset, batch_id=batch_id)
         # 保存文件偏移量
@@ -62,9 +61,11 @@ class LogCollectorTask(TaskRunner):
         offset_config.offset = offset
         offset_config.count += 1
         self.offset_service.update(offset_config)
+        # 保存批次信息
         self.log_metadata_batch_service.merge(
             LogMetadataBatch(
                 batch_id=batch_id,
+                index_name=index_name,
                 start_time=start_time,
                 end_time=datetime.datetime.now(),
                 status=BatchStatus.PENDING
