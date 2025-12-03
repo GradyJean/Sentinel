@@ -48,6 +48,26 @@ daily_nginx_metadata_template: Dict = {
                     }
                 }
             },
+            "method": {
+                "type": "keyword",
+                "ignore_above": 64
+            },
+            "protocol": {
+                "type": "keyword",
+                "ignore_above": 32
+            },
+            "path": {
+                "type": "keyword",
+                "ignore_above": 1024
+            },
+            "query": {
+                "type": "keyword",
+                "ignore_above": 2048
+            },
+            "path_type": {
+                "type": "keyword",
+                "ignore_above": 32
+            },
             "status": {
                 "type": "integer"
             },

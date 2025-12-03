@@ -5,6 +5,8 @@ from pydantic import model_validator, BaseModel
 from sqlalchemy import func
 from sqlmodel import Field
 from enum import Enum
+
+from core.utils.url_utils import parse_request
 from models.storage.document import ElasticSearchModel
 from models.storage.database import DatabaseModel
 
@@ -29,6 +31,11 @@ class LogMetaData(ElasticSearchModel):
     remote_user: Optional[str]  # 远程用户标识
     time_local: Optional[datetime]  # 请求时间
     request: Optional[str]  # 请求行（方法、URL、协议）
+    protocol: Optional[str]  # 请求行（协议）
+    method: Optional[str]  # 请求行（方法）
+    path: Optional[str]  # 请求行（URL）
+    query: Optional[str]  # 请求行（参数）
+    path_type: Optional[str]  # 请求行（URL类型）
     status: Optional[int]  # 响应状态码
     request_length: Optional[int]  # 请求长度
     body_bytes_sent: Optional[int]  # 发送给客户端的字节数
@@ -71,12 +78,23 @@ class LogMetaData(ElasticSearchModel):
             http_referer=parts[7] if parts[7] != "" else None,
             http_user_agent=parts[8] if parts[8] != "" else None,
             request_time=int(float(parts[9]) * 1000) if parts[9] != "" else None,
-            batch_id=None
+            batch_id="",
+            method="",
+            path="",
+            query="",
+            protocol="",
+            path_type=""
         )
 
     @model_validator(mode="after")
     def auto_fix(self) -> Self:
         self.batch_id = self.get_batch_id(self.time_local)
+        result = parse_request(self.request)
+        self.method = result.get("method")
+        self.path = result.get("path")
+        self.query = result.get("query")
+        self.protocol = result.get("protocol")
+        self.path_type = result.get("path_type")
         return self
 
     @staticmethod
