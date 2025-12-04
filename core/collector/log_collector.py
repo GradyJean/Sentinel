@@ -66,15 +66,15 @@ class Collector:
                 log_date = log_metadata.time_local.strftime("%Y_%m_%d")
                 # 日期改变添加事件
                 if self.__log_date != log_date:
+                    # 日期改变直接返回批次数据 并返回偏移量 重新开始一下一批次
+                    if len(batch_log_metadata) > 0:
+                        self.__data_callback_invoke(batch_log_metadata, file.tell())
+                        batch_log_metadata.clear()
                     self.__event_callback_invoke(CollectEvent(
                         event_type=CollectEventType.DATE_CHANGED,
                         data=CollectEventData(last=self.__log_date, current=log_date)
                     ))
                     self.__log_date = log_date
-                    # 日期改变直接返回批次数据 并返回偏移量 重新开始一下一批次
-                    if len(batch_log_metadata) > 0:
-                        self.__data_callback_invoke(batch_log_metadata, file.tell())
-                        batch_log_metadata.clear()
                 # 获取当前行日志批次
                 log_batch_id = log_metadata.batch_id
                 # 批次改变添加事件

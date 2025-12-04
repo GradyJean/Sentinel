@@ -73,31 +73,37 @@ class AccessIpAggregationService(ElasticSearchRepository[AccessIpAggregation]):
         ]
 
     @staticmethod
-    def parse_extended_stats(stats):
+    def safe_float(value, default=0.0):
+        """安全转换浮点数，处理 NaN 和 None 情况"""
+        if not isinstance(value, float):
+            return default
+        return float(value)
+
+    def parse_extended_stats(self, stats):
         """解析 extended_stats 聚合成 ExtendedStats 模型"""
         if not stats:
             return None
         bounds = stats.get("std_deviation_bounds", {})
         return ExtendedStats(
             count=stats.get("count", 0),
-            min=stats.get("min", 0.0),
-            max=stats.get("max", 0.0),
-            avg=stats.get("avg", 0.0),
-            sum=stats.get("sum", 0.0),
-            sum_of_squares=stats.get("sum_of_squares", 0.0),
-            variance=stats.get("variance", 0.0),
-            variance_population=stats.get("variance_population", 0.0),
-            variance_sampling=stats.get("variance_sampling", 0.0),
-            std_deviation=stats.get("std_deviation", 0.0),
-            std_deviation_population=stats.get("std_deviation_population", 0.0),
-            std_deviation_sampling=stats.get("std_deviation_sampling", 0.0),
+            min=self.safe_float(stats.get("min", 0.0)),
+            max=self.safe_float(stats.get("max", 0.0)),
+            avg=self.safe_float(stats.get("avg", 0.0)),
+            sum=self.safe_float(stats.get("sum", 0.0)),
+            sum_of_squares=self.safe_float(stats.get("sum_of_squares", 0.0)),
+            variance=self.safe_float(stats.get("variance", 0.0)),
+            variance_population=self.safe_float(stats.get("variance_population", 0.0)),
+            variance_sampling=self.safe_float(stats.get("variance_sampling", 0.0)),
+            std_deviation=self.safe_float(stats.get("std_deviation", 0.0)),
+            std_deviation_population=self.safe_float(stats.get("std_deviation_population", 0.0)),
+            std_deviation_sampling=self.safe_float(stats.get("std_deviation_sampling", 0.0)),
             std_deviation_bounds=StdDeviationBound(
-                upper=bounds.get("upper", 0.0),
-                lower=bounds.get("lower", 0.0),
-                upper_population=bounds.get("upper_population", 0.0),
-                lower_population=bounds.get("lower_population", 0.0),
-                upper_sampling=bounds.get("upper_sampling", 0.0),
-                lower_sampling=bounds.get("lower_sampling", 0.0),
+                upper=self.safe_float(bounds.get("upper", 0.0)),
+                lower=self.safe_float(bounds.get("lower", 0.0)),
+                upper_population=self.safe_float(bounds.get("upper_population", 0.0)),
+                lower_population=self.safe_float(bounds.get("lower_population", 0.0)),
+                upper_sampling=self.safe_float(bounds.get("upper_sampling", 0.0)),
+                lower_sampling=self.safe_float(bounds.get("lower_sampling", 0.0)),
             )
         )
 
