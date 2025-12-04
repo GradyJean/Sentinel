@@ -9,4 +9,19 @@ class LogAggregatorTask(TaskRunner):
     access_ip_aggregation_service = AccessIpAggregationService()
 
     async def run(self):
-        pass
+        query = {
+            "query": {
+                "term": {
+                    "status": "COLLECTED"
+                }
+            }, "sort": [
+                {
+                    "batch_id": {
+                        "order": "asc"
+                    }
+                }]
+        }
+        batches = self.log_metadata_batch_service.get_all(query=query)
+        for batch in batches:
+            access_ip_aggregation = self.access_ip_aggregation_service.query_access_ip_aggregation(batch.batch_id)
+            self.access_ip_aggregation_service.batch_insert(access_ip_aggregation)

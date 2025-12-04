@@ -29,15 +29,41 @@ class ElasticSearchRepository(IRepository[E]):
             raise ValueError("Repository must specify a index")
         self.index = index
 
-    def get_all(self) -> List[E]:
+    def get_all(self, query: Optional[dict] = None) -> List[E]:
         records: List[E] = []
-        res = es_client.search(index=self.index, body={"query": {"match_all": {}}})
-        if "hits" not in res:
-            return records
-        for hit in res["hits"]["hits"]:
-            record = self.model(**hit["_source"])
-            record.id = hit["_id"]
-            records.append(record)
+        page_size = 1000
+
+        # if user didn't pass query, default to match_all
+        if query is None:
+            query = {"query": {"match_all": {}}}
+
+        # initial search with scroll
+        resp = es_client.search(
+            index=self.index,
+            body=query,
+            scroll="1m",
+            size=page_size
+        )
+
+        scroll_id = resp.get("_scroll_id")
+        hits = resp["hits"]["hits"]
+
+        while hits:
+            for hit in hits:
+                record = self.model(**hit["_source"])
+                record.id = hit["_id"]
+                records.append(record)
+
+            resp = es_client.scroll(scroll_id=scroll_id, scroll="1m")
+            scroll_id = resp.get("_scroll_id")
+            hits = resp["hits"]["hits"]
+
+        # clear scroll context
+        try:
+            es_client.clear_scroll(scroll_id=scroll_id)
+        except Exception as e:
+            logger.error(e)
+
         return records
 
     def query_list(self, query: Any) -> List[E]:
