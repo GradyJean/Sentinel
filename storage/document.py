@@ -115,6 +115,11 @@ class ElasticSearchRepository(IRepository[E]):
             return False
 
     def batch_insert(self, records: List[E]) -> bool:
+        """
+        批量添加IP记录
+        """
+        if len(records) == 0:
+            return True
         try:
             actions = (
                 {

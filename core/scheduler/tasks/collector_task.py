@@ -1,5 +1,5 @@
 from typing import List
-
+from threading import Lock
 from loguru import logger
 
 from config import settings
@@ -17,6 +17,7 @@ class LogCollectorTask(TaskRunner):
     task_id: str = "log_collector"
     current_file_path: str = settings.nginx.get_log_path()
     file_path_changed: bool = False
+    _lock = Lock()  # 类级别锁
 
     def __init__(self):
         self.offset_service = OffsetsService()
@@ -28,27 +29,20 @@ class LogCollectorTask(TaskRunner):
         )
 
     def run(self):
-        """
-            初始计数 从1开始 1表示从今天的文件开始
-            0表示昨天日志 用于收尾昨天日志
-            count =1 的时候offset 为0 表示从文件头开始
-            count 字段 由daily_task 任务更新
-        """
+        with self._lock:
+            self._run_safe()
+
+    def _run_safe(self):
         file_path = settings.nginx.get_log_path()
-        # 获取文件偏移量配置
         offset_config = self.offset_service.get()
         offset = offset_config.offset
-        # 文件路径改变
-        # 每天只发生一次
-        # 用来采集昨天尾部
-        # 下一次调度就切换文件了 偏移量需要归0
+
         if file_path != self.current_file_path:
             logger.info(f"file path change to: {file_path}")
             file_path = self.current_file_path
             self.file_path_changed = True
-            # 更新当前文件路径
             self.current_file_path = settings.nginx.get_log_path()
-        # 文件采集并返回偏移量
+
         logger.info(f"current collecting file path: {file_path}:[{offset}]:[{self.log_metadata_service.index}]")
         self.collector.start(file_path=file_path, offset=offset)
 
