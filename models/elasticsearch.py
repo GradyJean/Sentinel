@@ -358,7 +358,7 @@ access_ip_aggregation_template = {
             },
             "behavior_vector": {
                 "type": "dense_vector",
-                "dims": 35,
+                "dims": 19,
                 "index": True,
                 "similarity": "cosine"
             }

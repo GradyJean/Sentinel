@@ -262,16 +262,6 @@ class AccessIpAggregationService(ElasticSearchRepository[AccessIpAggregation]):
         # referer
         ref_empty = ratio(access_ip_agg.referer_categories, "empty_referer")
         ref_non_empty = 1 - ref_empty
-        # Stats 数值字段
-        rl_avg = float(access_ip_agg.request_length.avg or 0)
-        rl_std = float(access_ip_agg.request_length.std_deviation or 0)
-
-        bb_avg = float(access_ip_agg.body_bytes_sent.avg or 0)
-        bb_std = float(access_ip_agg.body_bytes_sent.std_deviation or 0)
-
-        rt_avg = float(access_ip_agg.request_time.avg or 0)
-        rt_std = float(access_ip_agg.request_time.std_deviation or 0)
-
         # UA 特征
         def parse_ua_features(ua_list):
             total = sum(kv.value for kv in ua_list) or 1
@@ -342,13 +332,6 @@ class AccessIpAggregationService(ElasticSearchRepository[AccessIpAggregation]):
             # referer
             ref_empty,
             ref_non_empty,
-            # numeric stats
-            rl_avg,
-            rl_std,
-            bb_avg,
-            bb_std,
-            rt_avg,
-            rt_std,
             # UA 特征
             *ua_vec
         ]
