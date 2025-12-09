@@ -140,7 +140,7 @@ class ElasticSearchRepository(IRepository[E]):
                 return False
             return success_count > 0
         except Exception as e:
-            logger.error(e)
+            logger.error(f"{self.index} batch insert error: {e}")
             return False
 
     def batch_merge(self, records: List[E]) -> bool:
