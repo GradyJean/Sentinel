@@ -54,7 +54,7 @@ flowchart LR
     class Policy,Integrator flowLabel;
 
     %% 模块样式
-    classDef module fill:#f9f,stroke:#333,stroke-width:1px,color:#000;
+    classDef module fill:#6aa5f1,stroke:#333,stroke-width:1px,color:#000;
     class Collector,Extractor,Aggregator,Detector,Policy,Integrator,Storage,Scheduler,API module;
 ```
 ## 项目结构
