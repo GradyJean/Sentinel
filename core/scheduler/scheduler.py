@@ -80,6 +80,13 @@ class SchedulerManager:
             config: TaskScheduler = config_dict[task_id]
             # 获取任务
             job = self.scheduler.get_job(task_id)
+            if not config.enabled:
+                # 禁用任务
+                logger.info(f"Task [{task_id}] disabled")
+                if job:
+                    self.scheduler.remove_job(task_id)
+                continue
+
             if job:
                 # 任务已存在,直接更新
                 self.scheduler.modify_job(

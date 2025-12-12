@@ -143,8 +143,8 @@ class BatchStatus(Enum):
     COLLECTED = "COLLECTED"  # 已采集
     AGGREGATING = "AGGREGATING"  # 正在聚合
     AGGREGATED = "AGGREGATED"  # 聚合完成
-    PROCESSING = "PROCESSING"  # 处理中
-    COMPLETED = "COMPLETED"  # 处理完成
+    SCORING = "SCORING"  # 评分中
+    SCORED = "SCORED"  # 评分完成
     FAILED = "FAILED"  # 处理失败
 
 
