@@ -14,7 +14,7 @@ class LogCollectorTask(TaskRunner):
     """
     日志采集任务
     """
-    task_id: str = "log_collector"
+    task_id: str = "log_collector_task"
     current_file_path: str = settings.nginx.get_log_path()
     file_path_changed: bool = False
     _lock = Lock()  # 类级别锁

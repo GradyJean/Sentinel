@@ -68,8 +68,3 @@ class ScoreTask(TaskRunner):
 
     def get_rules(self) -> List[ScoreRule]:
         return self.score_rule_manager.get_all()
-
-
-if __name__ == '__main__':
-    task = ScoreTask()
-    task.run()

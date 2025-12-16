@@ -6,6 +6,7 @@ from typing import Optional, List, Self
 from pydantic import BaseModel, Field, model_validator
 
 from models.aggregator import AccessIpAggregation, KeyValue, ExtendedStats
+from models.ip import IpEnrich
 from models.storage.document import ElasticSearchModel
 
 
@@ -50,6 +51,7 @@ class ScoreRecord(ElasticSearchModel):
     score_dynamic: float = 0  # 动态评分
     score_feature: float = 0  # 特征评分
     score_details: List[ScoreDetail] = Field(default_factory=list)  # 评分详情
+    ip_enrich: IpEnrich = Field(default_factory=IpEnrich)  # IP 地址信息
     batch_id: str = Field(default="")  # 批次ID
 
 
@@ -117,7 +119,7 @@ class AccessIpScoreFeatures(BaseModel):
     """
     ip: str
     batch_id: str
-
+    ip_enrich: IpEnrich
     features: Dict[str, Any] = Field(default_factory=dict)
     behavior_vector: List[float] = Field(default_factory=list)
 
@@ -201,5 +203,6 @@ class AccessIpScoreFeatures(BaseModel):
             ip=agg.ip,
             batch_id=agg.batch_id,
             features=features,
+            ip_enrich=agg.ip_enrich,
             behavior_vector=agg.behavior_vector,
         )

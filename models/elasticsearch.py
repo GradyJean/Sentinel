@@ -425,6 +425,17 @@ score_record_template = {
             "batch_id": {
                 "type": "keyword"
             },
+            "ip_enrich": {
+                "properties": {
+                    "allowed": {"type": "boolean"},
+                    "org_name": {"type": "keyword"},
+                    "city_name": {"type": "keyword"},
+                    "country_name": {"type": "keyword"},
+                    "country_code": {"type": "keyword"},
+                    "continent_name": {"type": "keyword"},
+                    "continent_code": {"type": "keyword"}
+                }
+            },
             "score_details": {
                 "type": "nested",
                 "properties": {

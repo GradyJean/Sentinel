@@ -1,7 +1,7 @@
 import ipaddress
 from typing import Optional, Self
 
-from pydantic import model_validator
+from pydantic import model_validator, BaseModel
 
 from models.storage.document import ElasticSearchModel
 
@@ -35,3 +35,13 @@ class AllowedIpSegment(ElasticSearchModel):
             self.start_ip, self.end_ip = self.end_ip, self.start_ip
         self.cidr = ip_range_to_cidr(self.start_ip, self.end_ip)
         return self
+
+
+class IpEnrich(BaseModel):
+    allowed: bool = False
+    org_name: str = ""
+    city_name: str = ""
+    country_name: str = ""
+    country_code: str = ""
+    continent_name: str = ""
+    continent_code: str = ""

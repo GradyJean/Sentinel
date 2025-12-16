@@ -52,5 +52,6 @@ class ScoreEngine:
             score_dynamic=score_dynamic,
             score_feature=score_feature,
             score_details=score_details,
+            ip_enrich=features.ip_enrich,
             batch_id=features.batch_id
         )

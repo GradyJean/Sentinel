@@ -5,7 +5,7 @@ from manager.log_metadata_manager import LogMetaDataBatchManager
 
 
 class LogAggregatorTask(TaskRunner):
-    task_id: str = "log_aggregator"
+    task_id: str = "log_aggregator_task"
     log_metadata_batch_manager = LogMetaDataBatchManager()
     access_ip_aggregation_manager = AccessIpAggregationManager()
 

@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from models.ip import IpEnrich
 from models.storage.document import ElasticSearchModel
 
 
@@ -34,15 +35,6 @@ class KeyValue(BaseModel):
     key: str
     value: int
 
-
-class IpEnrich(BaseModel):
-    allowed: bool = False
-    org_name: str = ""
-    city_name: str = ""
-    country_name: str = ""
-    country_code: str = ""
-    continent_name: str = ""
-    continent_code: str = ""
 
 
 class AccessIpAggregation(ElasticSearchModel):
