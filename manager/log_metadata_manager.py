@@ -21,6 +21,8 @@ class LogMetaDataManager(ElasticSearchRepository[LogMetaData]):
         cutoff = datetime.now() - timedelta(days=keep_days)
         indices = self.get_client().indices.get(index=f"{self.PREFIX}*")
         for index in indices:
+            if index == "log_metadata_batch":
+                continue
             try:
                 date_str = index.replace(self.PREFIX, "")
                 index_date = datetime.strptime(date_str, "%Y_%m_%d")
