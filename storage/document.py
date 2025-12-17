@@ -18,6 +18,7 @@ if settings.elasticsearch.username and settings.elasticsearch.password:
     http_auth = (settings.elasticsearch.username, settings.elasticsearch.password)
 es_client: Elasticsearch = Elasticsearch(settings.elasticsearch.url,
                                          http_auth=http_auth)
+es_client.options(request_timeout=60)
 
 E = TypeVar("E", bound=ElasticSearchModel)
 
@@ -136,7 +137,6 @@ class ElasticSearchRepository(IRepository[E]):
                 es_client,
                 actions,
                 chunk_size=1000,
-                request_timeout=60,
                 raise_on_error=True,
                 raise_on_exception=True,
                 error_trace=True
@@ -169,7 +169,6 @@ class ElasticSearchRepository(IRepository[E]):
                 self.get_client(),
                 actions,
                 chunk_size=1000,
-                request_timeout=60
             )
             if error:
                 logger.error(error)

@@ -145,6 +145,8 @@ class BatchStatus(Enum):
     AGGREGATED = "AGGREGATED"  # 聚合完成
     SCORING = "SCORING"  # 评分中
     SCORED = "SCORED"  # 评分完成
+    STATISTICS_IN_PROGRESS = "STATISTICS_IN_PROGRESS"  # 统计处理中
+    STATISTICS_COMPLETED = "STATISTICS_COMPLETED"  # 统计处理完成
     FAILED = "FAILED"  # 处理失败
 
 

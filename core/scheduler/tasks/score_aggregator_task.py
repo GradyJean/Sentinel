@@ -27,8 +27,9 @@ class ScoreAggregatorTask(TaskRunner):
         # 获取所有批次
         batches = self.log_metadata_batch_manager.get_all_by_status(BatchStatus.SCORED)
         for batch in batches:
-            batch.status = BatchStatus.AGGREGATING
-            self.log_metadata_batch_manager.merge( batch)
+            # 更新批次状态
+            batch.status = BatchStatus.STATISTICS_IN_PROGRESS
+            self.log_metadata_batch_manager.merge(batch)
             actions = []
             # 获取所有评分记录
             score_records = self.score_record_manager.get_all_by_batch_id(batch.batch_id)
@@ -53,13 +54,14 @@ class ScoreAggregatorTask(TaskRunner):
                 es_client,
                 actions,
                 chunk_size=1000,
-                request_timeout=60,
                 raise_on_error=True,
                 raise_on_exception=True,
                 error_trace=True
             )
             if error:
                 logger.error(error)
+            batch.status = BatchStatus.STATISTICS_COMPLETED
+            self.log_metadata_batch_manager.merge(batch)
 
     @staticmethod
     def build_script(record: IpSummary) -> dict:
@@ -100,8 +102,3 @@ class ScoreAggregatorTask(TaskRunner):
             }
         }
         return script
-
-
-if __name__ == '__main__':
-    task = ScoreAggregatorTask()
-    task.run()
