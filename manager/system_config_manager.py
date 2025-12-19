@@ -14,6 +14,7 @@ class SystemConfigManager(ElasticSearchRepository[SystemConfig]):
 
     def __init__(self):
         super().__init__("system_config", SystemConfig)
+        self.load_config()
 
     def load_config(self):
         """
